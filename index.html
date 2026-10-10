@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#153c52"><meta name="description" content="Laboratori interactiu de filtratge analògic: senyal, espectre, Bode i anti-aliasing.">
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./style.css"><title>Filtratge analògic · MEI</title>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="./"><img src="./icon.svg" width="38" height="38" alt=""><span>Filtratge analògic<small>Instrumentació industrial · Sessió 7</small></span></a><div class="header-actions"><span id="connection" class="badge">Laboratori MEI</span><button id="install" class="button secondary" hidden>Instal·lar</button><button id="installHelp" class="button secondary">Com instal·lar</button><button id="share" class="button">Compartir</button></div></header>
+  <main class="workspace">
+    <aside class="controls" aria-label="Paràmetres de simulació">
+      <div class="panel-heading"><h1>Configura el senyal</h1><span class="eyebrow">LAB / 07</span></div>
+      <details open><summary>Senyal d’entrada</summary><div class="section-body">
+        <label class="field">Exemple<select id="preset"><option value="0">30 Hz útil + 1 kHz interferència</option><option value="1">Temperatura: lenta + soroll ràpid</option><option value="2">Vibració: offset + deriva + vibració</option><option value="3">Pressió + interferència de 50 Hz</option><option value="4">Anti-aliasing: 1 kHz + 4 kHz</option><option value="5">Personalitzat</option></select></label>
+        <label class="row">Offset <span class="unit">V</span><input id="offset" aria-label="Offset en volts" type="number" min="-10" max="10" step="0.1" value="0"></label>
+        <div class="component-grid"><span></span><span>A [V]</span><span>f [Hz]</span>
+          <span class="component-label">01</span><input id="a1" aria-label="Amplitud component 1" type="number" min="0" max="10" step="0.1" value="2"><input id="f1" aria-label="Freqüència component 1" type="number" min="0.01" max="5000" step="0.01" value="30">
+          <span class="component-label">02</span><input id="a2" aria-label="Amplitud component 2" type="number" min="0" max="10" step="0.1" value="0.5"><input id="f2" aria-label="Freqüència component 2" type="number" min="0.01" max="5000" step="0.01" value="1000">
+          <span class="component-label">03</span><input id="a3" aria-label="Amplitud component 3" type="number" min="0" max="10" step="0.1" value="0"><input id="f3" aria-label="Freqüència component 3" type="number" min="0.01" max="5000" step="0.01" value="50">
+        </div>
+        <label class="row">Temps mostrat <span class="unit">s</span><input id="duration" aria-label="Durada en segons" type="number" min="0.02" max="20" step="0.01" value="0.2"></label>
+        <label class="row">Resolució <span class="unit">Hz</span><input id="fs" aria-label="Resolució de simulació en hertz" type="number" min="1000" max="100000" step="1000" value="20000"></label>
+      </div></details>
+      <details open><summary>Filtre analògic H(s)</summary><div class="section-body">
+        <label class="row">Tipus<select id="type"><option value="none">Sense filtre</option><option value="low" selected>Passa-baix</option><option value="high">Passa-alt</option><option value="band">Passa-banda</option><option value="notch">Notch</option></select></label>
+        <label class="row">Ordre<input id="order" aria-label="Ordre del filtre" type="number" min="1" max="4" step="1" value="1"></label>
+        <label class="row"><span id="fcLabel">fc [Hz]</span><input id="fc1" aria-label="Freqüència de tall o central" type="number" min="0.05" max="5000" step="0.05" value="80"></label>
+        <label class="row">fH [Hz]<input id="fc2" aria-label="Freqüència de tall superior" type="number" min="0.05" max="5000" step="0.05" value="300" disabled></label>
+        <label class="row">Q notch<input id="q" aria-label="Factor de qualitat del notch" type="number" min="0.2" max="100" step="0.1" value="10" disabled></label>
+      </div></details>
+      <details open><summary>Mostreig i anti-aliasing</summary><div class="section-body">
+        <label class="check"><input id="nyquist" type="checkbox" checked>Mostrar Nyquist i zona d’aliasing</label>
+        <label class="row">fs ADC <span class="unit">S/s</span><input id="adc" aria-label="Freqüència de mostreig de l’ADC" type="number" min="1" max="50000" step="1" value="5000"></label>
+        <p id="nyquistStatus" class="note accent"></p><p class="note">La línia vermella marca fN = fs/2. La casella mostra o amaga les referències; no modifica el senyal analògic.</p>
+      </div></details>
+      <details open><summary>Visualització</summary><div class="section-body checks">
+        <label class="check"><input id="showInput" type="checkbox" checked><span class="swatch input"></span>Entrada</label>
+        <label class="check"><input id="showOutput" type="checkbox" checked><span class="swatch output"></span>Sortida</label>
+        <label class="check"><input id="showExact" type="checkbox" checked>Resposta exacta |H(f)|</label>
+        <label class="check"><input id="showAsym" type="checkbox" checked>Asímptotes</label>
+      </div></details>
+      <button id="reset" class="button secondary full">Restaurar exemple</button><p class="sidebar-footer">Butterworth analògic · sense paràmetres RC</p>
+    </aside>
+    <section class="results" aria-label="Resultats de la simulació">
+      <div class="results-header"><div role="tablist" aria-label="Domini de representació" class="tabs"><button id="tabSignal" role="tab" aria-selected="true" aria-controls="signalView" class="active">Senyal i espectre</button><button id="tabFilter" role="tab" aria-selected="false" aria-controls="filterView">Resposta del filtre</button></div><span id="computeStatus" role="status">Preparant simulació…</span></div>
+      <div id="error" class="error" role="alert" hidden></div>
+      <div id="signalView" role="tabpanel" aria-labelledby="tabSignal">
+        <article class="chart-card"><div class="chart-heading"><h2>Senyal en el temps</h2><span class="chart-caption">Resposta analògica amb transitori</span></div><canvas id="timeChart" aria-label="Gràfic del senyal d’entrada i sortida en el temps"></canvas></article>
+        <div class="spectrum-grid"><article class="chart-card"><div class="chart-heading"><h2>Espectre</h2><span class="chart-caption">Freqüència logarítmica</span></div><canvas id="spectrumChart" aria-label="Espectre i resposta del filtre"></canvas></article><article class="chart-card origin"><div class="chart-heading"><h2>Prop de l’origen</h2><span class="chart-caption">Eix lineal · inclou 0 Hz</span></div><canvas id="originChart" aria-label="Espectre a baixes freqüències i component contínua"></canvas><p id="dcReading" class="chart-footnote"></p></article></div>
+      </div>
+      <div id="filterView" role="tabpanel" aria-labelledby="tabFilter" hidden><article class="chart-card"><div class="chart-heading"><h2>Magnitud de Bode</h2><span class="chart-caption">dB · freqüència logarítmica</span></div><canvas id="magnitudeChart" aria-label="Magnitud exacta i asimptòtica del filtre"></canvas></article><article class="chart-card"><div class="chart-heading"><h2>Fase</h2><span class="chart-caption">Graus · freqüència logarítmica</span></div><canvas id="phaseChart" aria-label="Fase del filtre"></canvas></article></div>
+      <article class="reading"><div><span class="eyebrow">LECTURA DEL FILTRE</span><h2 id="filterReading">Passa-baix · ordre 1</h2><p id="slopeReading"></p></div><div id="componentsReading" class="component-readings"></div><p id="samplingReading" class="note"></p></article>
+      <p class="help">Clica una component de l’espectre per veure Ain → H(f) → Aout. Roda del ratolí: ampliar l’eix de freqüència. Doble clic: restaurar la vista.</p>
+    </section>
+  </main>
+  <dialog id="installation"><form method="dialog"><button class="dialog-close" aria-label="Tancar">×</button><h2>El laboratori, al teu dispositiu</h2><p>Utilitza el botó «Instal·lar» quan el navegador l’ofereixi. A l’iPhone o l’iPad, obre el menú de compartir i tria «Afegir a la pantalla d’inici».</p><p>També pots utilitzar l’aplicació directament amb l’enllaç. Després de carregar-la per primera vegada, estarà disponible sense connexió.</p><button class="button">Entesos</button></form></dialog>
+  <div id="toast" role="status" hidden></div><script type="module" src="./app.js"></script>
+</body></html>
