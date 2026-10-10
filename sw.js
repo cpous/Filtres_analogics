@@ -1,4 +1,4 @@
-const CACHE='mei-filtres-v1';
+const CACHE='mei-filtres-v2';
 const ASSETS=['./','./index.html','./style.css','./app.js','./engine.js','./charts.js','./compute.js','./manifest.webmanifest','./icon.svg','./icons/icon-192.png','./icons/icon-512.png','./icons/maskable-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('mei-filtres-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

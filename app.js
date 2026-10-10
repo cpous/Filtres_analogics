@@ -11,7 +11,7 @@ const presets=[
   [.5,.8,3,.25,12,.35,50,2,20000,'notch',2,50,200,12,1000],
   [0,1,1000,.5,4000,0,50,.02,20000,'low',2,1500,3000,10,5000]
 ];
-const charts=Object.fromEntries(['time','spectrum','origin','magnitude','phase'].map(name=>[name,new Chart($(`${name}Chart`))]));
+const charts=Object.fromEntries(['time','spectrum','magnitude','phase'].map(name=>[name,new Chart($(`${name}Chart`))]));
 let current=null,selected=0,sequence=0,worker=null,debounce;
 function toast(text){$('toast').textContent=text;$('toast').hidden=false;setTimeout(()=>$('toast').hidden=true,4500);}
 function read(){
@@ -53,14 +53,6 @@ function render(){if(!current)return;const {params:p,model,t,x,y,input,output}=c
   if(p.showExact||p.showAsym&&asym[0]!==null)cutoffs.forEach(fc=>markers.push({x:fc,y:magnitude(model,fc),right:true,color:colors.output,label:'fc: −3 dB'}));
   if(v.amp>0){lines.push({x:v.freq,dash:[2,4]});if(p.nyquist&&v.freq>fn){const alias=aliasFrequency(v.freq,p.adc);if(alias>0)markers.push({x:alias,y:v.amp*10**(magnitude(model,v.freq)/20),color:colors.asym,label:`alias ${format(alias)} Hz`});}}
   charts.spectrum.set({xmin:fmin,xmax:fmax,ymin:-maxAmp*.05,ymax:maxAmp*1.16,log:true,series:spectral,markers,lines,right:(p.showExact||p.showAsym&&asym[0]!==null)?{min:-80,max:5}:null,nyquist:p.nyquist?fn:null,zoomable:true,onSelect:select});
-  const active=p.components.filter(v=>v.amp>0);const lowMax=Math.min(p.fs/2,Math.max(2/p.duration,active.length?2*Math.min(...active.map(v=>v.freq)):2/p.duration));
-  const lowSeries=[],dcMarkers=[];let lowPeak=.05;
-  for(const [visible,s,color,name] of [[p.showInput,input,colors.input,'Entrada'],[p.showOutput,output,colors.output,'Sortida']]){if(!visible)continue;
-    let end=1;while(end<s.f.length&&s.f[end]<=lowMax){lowPeak=Math.max(lowPeak,s.amp[end]);end++;}lowPeak=Math.max(lowPeak,s.amp[0]);
-    lowSeries.push({x:s.f.subarray(1,end),y:s.amp.subarray(1,end),color,name},{x:[0,0],y:[0,s.amp[0]],color,width:3});dcMarkers.push({x:0,y:s.amp[0],color});
-  }
-  charts.origin.set({xmin:-lowMax*.08,xmax:lowMax,ymin:-lowPeak*.05,ymax:lowPeak*1.15,series:lowSeries,markers:dcMarkers,zoomable:true});
-  $('dcReading').textContent=`0 Hz (registre): entrada ${p.showInput?format(input.amp[0])+' V':'oculta'} · sortida ${p.showOutput?format(output.amp[0])+' V':'oculta'}. Finestra de Hann: en registres curts, les oscil·lacions lentes també hi contribueixen.`;
   const positive=[...p.components.map(v=>v.freq),p.fc1,p.fc2,fn];const bmin=Math.max(.001,Math.min(...positive)/30),bmax=Math.max(...positive)*30;
   const bf=logspace(bmin,bmax,1000,cutoffs),mag=bf.map(v=>magnitude(model,v)),phase=unwrapPhase(model,bf),ba=bf.map(v=>asymptote(p,v));
   const magSeries=[{x:bf,y:mag,color:colors.input,name:'Resposta exacta'}];if(p.showAsym&&ba[0]!==null)magSeries.push({x:bf,y:ba,color:colors.asym,dash:[6,4],name:'Asímptota'});
